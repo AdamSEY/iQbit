@@ -35,17 +35,18 @@ export type Provider = {
 };
 
 export const providers: { [i in ProviderKeys]: Provider } = {
-  YTS: {
-    logo: <YtsLogo />,
-    name: "YTS",
-    categories: ["Movies"],
-  },
+
   plugin: {
     logo: <QbitLogo />,
     name: "Plugins",
     categories: ["all"],
-    experimental: true,
+    experimental: false,
   },
+    YTS: {
+        logo: <YtsLogo />,
+        name: "YTS",
+        categories: ["Movies"],
+    },
   TPB: {
     logo: <TpbLogo />,
     name: "PirateBay",
@@ -112,7 +113,7 @@ const SearchPage = () => {
   const location = useLocation();
 
   const [selectedProvider, setSelectedProvider] = useState<ProviderKeys>(
-    (location?.state as any)?.provider || "YTS"
+    (location?.state as any)?.provider || "plugin"
   );
   const [selectedCategory, setSelectedCategory] = useState(0);
 
@@ -137,8 +138,7 @@ const SearchPage = () => {
     <>
       <PageHeader title={"Search"} />
       <Text color={"gray.500"} mb={5}>
-        Warning: Be sure to comply with your country's copyright laws when
-        downloading torrents from any of these search engines.
+       Search for torrents on the web
       </Text>
       <Heading size={"md"} mb={3}>
         Select Search Provider
