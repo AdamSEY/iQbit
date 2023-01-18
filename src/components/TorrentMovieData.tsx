@@ -13,26 +13,31 @@ export interface TorrentMovieDataProps {
 
 const TorrentMovieData = (props: TorrentMovieDataProps) => {
   return (
+
     <SimpleGrid gap={3} width={"100%"} columns={3} mb={1}>
+        <StatWithIcon
+            lit
+            icon={<IoCube {...torrentBoxIconProps} />}
+            label={
+                typeof props.size === "string"
+                    ? props.size
+                    : filesize(props.size || 0, { round: 1 })
+            }
+        />
+        { props.quality && (
       <StatWithIcon
         lit
         icon={<IoTv {...torrentBoxIconProps} />}
         label={props.quality}
-      />
+      />)}
+        { props.type && (
       <StatWithIcon
         lit
         icon={<IoFilm {...torrentBoxIconProps} />}
         label={props.type}
       />
-      <StatWithIcon
-        lit
-        icon={<IoCube {...torrentBoxIconProps} />}
-        label={
-          typeof props.size === "string"
-            ? props.size
-            : filesize(props.size || 0, { round: 1 })
-        }
-      />
+        )}
+
     </SimpleGrid>
   );
 };

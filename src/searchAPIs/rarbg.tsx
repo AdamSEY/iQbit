@@ -4,12 +4,14 @@ import IosSearch from "../components/ios/IosSearch";
 import { useMutation } from "react-query";
 import TorrentDownloadBox from "../components/TorrentDownloadBox";
 import SeedsAndPeers from "../components/SeedsAndPeers";
-import React, { useEffect, useMemo } from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import TorrentMovieData from "../components/TorrentMovieData";
 import Filters from "../components/Filters";
 import { parseFromString, qualityAliases, typeAliases } from "./tpb";
 import { rarbgAPI, RarbgCategoryDictionary } from "../utils/RarBGClient";
 import ReactGA from "react-ga";
+import TorrentNameToImage from "../utils/TorrentNameToImage";
+import PTN from "parse-torrent-title";
 
 const RarbgSearch = (props: SearchProviderComponentProps) => {
   const {
@@ -81,7 +83,7 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
         if (props.filterState.minSeeds !== "0") {
           return Torr.seeders >= parseInt(props.filterState.minSeeds || "0");
         } else {
-          return true;
+          return Torr.seeders >= 5;
         }
       });
   }, [
@@ -90,6 +92,21 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
     props.filterState.minSeeds,
     props.filterState.qualitySelected,
   ]);
+
+  const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
+  const [finished, setFinished] = useState(false);
+  useEffect(() => {
+    filteredMovies.map(async (Torr) => {
+      const parsed = PTN.parse(Torr.title);
+      if (!cachedImages[parsed.title]) {
+        const image = await TorrentNameToImage(Torr.title);
+        setCachedImages((prev) => ({...prev, [parsed.title]: image}));
+        setFinished(true);
+      }
+    })
+  }, [data])
+
+
 
   return (
     <VStack>
@@ -104,11 +121,12 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
         {(!data?.torrent_results?.length || true) && (
           <Filters {...props.filterState} />
         )}
-        {filteredMovies?.map((torr) => (
+        {finished && filteredMovies?.map((torr) => (
           <TorrentDownloadBox
             key={torr.download}
             title={torr.title}
             magnetURL={torr.download}
+            imageUrl={cachedImages[PTN.parse(torr.title).title]}
           >
             {props.category === "Movies" && (
               <TorrentMovieData

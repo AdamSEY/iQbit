@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from "react";
+import React, {PropsWithChildren} from "react";
 import {
   Box,
   Button,
@@ -11,16 +11,19 @@ import { useIsLargeScreen } from "../utils/screenSize";
 import { useMutation } from "react-query";
 import { TorrClient } from "../utils/TorrClient";
 import { IoCheckmark } from "react-icons/io5";
+import { Image } from "@chakra-ui/image";
 
 export interface TorrentDownloadBoxProps {
   title?: string;
   magnetURL?: string;
+  imageUrl?: string;
   onSelect?: () => Promise<string>;
 }
 
 const TorrentDownloadBox = ({
   magnetURL,
   title,
+  imageUrl,
   onSelect,
   children,
 }: PropsWithChildren<TorrentDownloadBoxProps>) => {
@@ -42,47 +45,49 @@ const TorrentDownloadBox = ({
   const bgColor = useColorModeValue("grayAlpha.200", "grayAlpha.400");
 
   return (
-    <Flex
-      p={3}
-      bgColor={bgColor}
-      width={"100%"}
-      justifyContent={"space-between"}
-      rounded={6}
-      alignItems={"center"}
-      gap={3}
-      wrap={{ base: "wrap", lg: "nowrap" }}
-    >
-      <Box flexGrow={2}>
-        {title && (
-          <Heading wordBreak={"break-all"} size={"md"} mb={2}>
-            {title}
-          </Heading>
-        )}
-        {children}
-      </Box>
-      <LightMode>
-        <Button
-          minW={32}
-          disabled={
-            isSuccess || callbackSuccess || callbackLoading || isLoading
-          }
-          isLoading={isLoading || callbackLoading}
-          colorScheme={"blue"}
-          width={!isLarge ? "100%" : undefined}
-          onClick={() => {
-            if (magnetURL) {
-              mutate(magnetURL);
-            } else if (onSelect) {
-              callbackMutation();
-            }
-          }}
-          leftIcon={isSuccess ? <IoCheckmark /> : undefined}
+        <Flex
+            p={3}
+            bgColor={bgColor}
+            width={"100%"}
+            justifyContent={"space-between"}
+            rounded={6}
+            alignItems={"center"}
+            gap={3}
+            wrap={{ base: "wrap", lg: "nowrap" }}
         >
-          {isSuccess ? "Added" : "Download"}
-        </Button>
-      </LightMode>
-    </Flex>
-  );
-};
+          <Box flexGrow={2}>
+            {title && (
+                <Heading wordBreak={"break-all"} size={"md"} mb={2}>
+                  {title}
+                </Heading>
+            )}
+            {children}
+            {imageUrl && <Image src={imageUrl} alt={title} width="150px" height="200px" />}
+          </Box>
+          <LightMode>
+            <Button
+                minW={32}
+                disabled={
+                    isSuccess || callbackSuccess || callbackLoading || isLoading
+                }
+                isLoading={isLoading || callbackLoading}
+                colorScheme={"blue"}
+                width={!isLarge ? "100%" : undefined}
+                onClick={() => {
+                  if (magnetURL) {
+                    mutate(magnetURL);
+                  } else if (onSelect) {
+                    callbackMutation();
+                  }
+                }}
+                leftIcon={isSuccess ? <IoCheckmark /> : undefined}
+            >
+              {isSuccess ? "Added" : "Download"}
+            </Button>
+          </LightMode>
+        </Flex>
+    );
+
+}
 
 export default TorrentDownloadBox;

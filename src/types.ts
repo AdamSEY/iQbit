@@ -153,6 +153,7 @@ export type TorrSearchStatus = {
 };
 
 export type TorrPluginSearchResult = {
+  imageUrl: string | undefined;
   descrLink: string;
   fileName: string;
   siteUrl: string;
@@ -458,6 +459,26 @@ export type TPBRecord = {
   status: string;
   username: string;
 };
+
+export type SearchResult  = {
+    id: string;
+    title: string;
+    overview: string;
+    poster_path: string;
+    backdrop_path: string;
+    release_date: string;
+    vote_average: number;
+    vote_count: number;
+    media_type: string;
+    adult: boolean;
+    genre_ids: number[];
+    original_language: string;
+    original_title: string;
+    popularity: number;
+    video: boolean;
+
+}
+
 
 export type rarbgTorrent = {
   title: string;
