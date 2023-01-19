@@ -12,7 +12,6 @@ import {
     useColorModeValue, useDisclosure,
     VStack,
 } from "@chakra-ui/react";
-import PTN from "parse-torrent-title";
 
 
 import { useMutation, useQuery } from "react-query";
@@ -27,6 +26,7 @@ import Filters from "../components/Filters";
 import TorrentMovieData from "../components/TorrentMovieData";
 import stringSimilarity from 'string-similarity'
 import TorrentNameToImage from "../utils/TorrentNameToImage";
+import ParseTorrent from "../utils/ParseTorrent";
 
 
 const PluginSearch = (props: SearchProviderComponentProps) => {
@@ -101,13 +101,12 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
             })
             // filter: filename has to contain props.searchState[0]
             .filter((Torr) => {
-                const parsedSearch = PTN.parse(props.searchState[0]);
-                const parsedFileName = PTN.parse(Torr.fileName);
+                const parsedSearch = ParseTorrent(props.searchState[0]);
+                const parsedFileName = ParseTorrent(Torr.fileName);
                 // if the title is not similar to what we're search for, don't show it.
                 // SearchPlugin sometimes returns unrelated
                 // results.
                 const similarity = stringSimilarity.compareTwoStrings(parsedSearch.title, parsedFileName.title);
-                console.log(parsedSearch.title, parsedFileName.title, similarity);
                 return similarity > 0.3;
             })
             // sort by most seeds
@@ -128,18 +127,31 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
         props.filterState.qualitySelected,
     ]);
 
+    const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
     const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
     const [finished, setFinished] = useState(false);
     useEffect(() => {
         filteredResults.map(async (Torr) => {
-            const parsed = PTN.parse(Torr.fileName);
-            if (!cachedImages[parsed.title]) {
-                const image = await TorrentNameToImage(Torr.fileName);
-                setCachedImages((prev) => ({...prev, [parsed.title]: image}));
+            const parsed = ParseTorrent(Torr.fileName);
+            if (!unifiedTitles.hasOwnProperty(parsed.title)) {
+                setUnifiedTitles((prev) => ({...prev, [parsed.title]: Torr.fileName}));
+            }
+        })
+    }, [filteredResults])
+
+    useEffect(() => {
+        // loop over cachedImages and set the image if it's not set yet.
+        Object.keys(unifiedTitles).map(async (title) => {
+            if (!cachedImages[title]) {
+                const image = await TorrentNameToImage(unifiedTitles[title]);
+                setCachedImages((prev) => ({...prev, [title]: image}));
+            }
+            if (Object.keys(cachedImages).length === Object.keys(unifiedTitles).length) {
                 setFinished(true);
             }
         })
-    }, [searchId])
+
+    }, [unifiedTitles])
 
     return (
         <VStack>
@@ -151,7 +163,7 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
                 placeholder={`Search ${props.category}...`}
             />
 
-            {searchId && finished && (
+            {searchId && finished && cachedImages && (
                 <Flex
                     position={"sticky"}
                     top={16}
@@ -189,12 +201,10 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
 
             {filteredResults.map((result) => (
 
-                // convert fileName to image and console log
-
                 <TorrentDownloadBox
                     key={result.fileUrl}
                     magnetURL={result.fileUrl}
-                    imageUrl={cachedImages[PTN.parse(result.fileName).title]}
+                    imageUrl={cachedImages[ParseTorrent(result.fileName).title]}
                     title={result.fileName}>
                     <TorrentMovieData
                         quality={parseFromString(result.fileName, qualityAliases)}

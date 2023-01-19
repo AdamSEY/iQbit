@@ -1,13 +1,11 @@
-import PTN from "parse-torrent-title";
 import {tmdbClient} from "./tmdbClient";
 import {SearchResult} from "../types";
+import ParseTorrent from "./ParseTorrent";
 
 const TorrentNameToImage = async (fileName: string) => {
 
     const unavailable = 'https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg'
-    const parsed = PTN.parse(fileName);
-
-    parsed.title = parsed.title.replace(/[!@#$%^&*()_.:]/g, "");
+    const parsed = ParseTorrent(fileName);
 
     const movies = await tmdbClient.searchMulti({
         query: parsed.title,
