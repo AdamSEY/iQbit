@@ -94,31 +94,6 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
     props.filterState.qualitySelected,
   ]);
 
-  const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
-  const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
-  const [finished, setFinished] = useState(false);
-  useEffect(() => {
-    filteredMovies.map(async (Torr) => {
-      const parsed = ParseTorrent(Torr.title);
-      if (!unifiedTitles.hasOwnProperty(parsed.title)) {
-        setUnifiedTitles((prev) => ({...prev, [parsed.title]: Torr.title}));
-      }
-    })
-  }, [filteredMovies])
-
-  useEffect(() => {
-    // loop over cachedImages and set the image if it's not set yet.
-    Object.keys(unifiedTitles).map(async (title) => {
-      if (!cachedImages[title]) {
-        const image = await TorrentNameToImage(unifiedTitles[title]);
-        setCachedImages((prev) => ({...prev, [title]: image}));
-      }
-      if (Object.keys(cachedImages).length === Object.keys(unifiedTitles).length) {
-        setFinished(true);
-      }
-    })
-
-  }, [unifiedTitles])
 
 
 
@@ -131,16 +106,15 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
         onSearch={search}
         placeholder={`Search ${props.category}...`}
       />
-      <Flex flexDirection={"column"} gap={2} width={"100%"}>
+      {<Flex flexDirection={"column"} gap={2} width={"100%"}>
         {(!data?.torrent_results?.length || true) && (
           <Filters {...props.filterState} />
         )}
-        {finished && cachedImages && filteredMovies?.map((torr) => (
+        {filteredMovies?.map((torr) => (
           <TorrentDownloadBox
             key={torr.download}
             title={torr.title}
             magnetURL={torr.download}
-            imageUrl={cachedImages[ParseTorrent(torr.title).title]}
           >
             {props.category === "Movies" && (
               <TorrentMovieData
@@ -155,7 +129,7 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
             />
           </TorrentDownloadBox>
         ))}
-      </Flex>
+      </Flex>}
     </VStack>
   );
 };

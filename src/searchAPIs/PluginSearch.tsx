@@ -130,7 +130,7 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
     const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
     const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
     const [finished, setFinished] = useState(false);
-    useEffect(() => {
+    useMemo(() => {
         filteredResults.map(async (Torr) => {
             const parsed = ParseTorrent(Torr.fileName);
             if (!unifiedTitles.hasOwnProperty(parsed.title)) {
@@ -139,7 +139,7 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
         })
     }, [filteredResults])
 
-    useEffect(() => {
+    useMemo(() => {
         // loop over cachedImages and set the image if it's not set yet.
         Object.keys(unifiedTitles).map(async (title) => {
             if (!cachedImages[title]) {
