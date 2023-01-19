@@ -104,7 +104,7 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
         setUnifiedTitles((prev) => ({...prev, [parsed.title]: Torr.title}));
       }
     })
-  }, [data])
+  }, [filteredMovies])
 
   useEffect(() => {
     // loop over cachedImages and set the image if it's not set yet.

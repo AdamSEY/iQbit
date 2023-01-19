@@ -165,7 +165,7 @@ const TPBSearch = (props: SearchProviderComponentProps) => {
         setUnifiedTitles((prev) => ({...prev, [parsed.title]: Torr.name}));
       }
     })
-  }, [data])
+  }, [filteredMovies])
 
   useEffect(() => {
     // loop over cachedImages and set the image if it's not set yet.
