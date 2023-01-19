@@ -75,11 +75,11 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
         }
     );
 
-    useEffect(() => {
-        if (data?.results && data.results.length > 400) {
-            stopSearch();
-        }
-    }, [data, stopSearch])
+    // useEffect(() => {
+    //     if (data?.results && data.results.length > 400) {
+    //         stopSearch();
+    //     }
+    // }, [data, stopSearch])
 
     let filteredResults = useMemo(() => {
         return (data?.results || [])
