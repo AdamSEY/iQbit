@@ -94,6 +94,30 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
     props.filterState.qualitySelected,
   ]);
 
+  const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
+  const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
+
+  useMemo(() => {
+    filteredMovies.map(async (Torr) => {
+      const parsed = ParseTorrent(Torr.title);
+      if (!unifiedTitles.hasOwnProperty(parsed.title)) {
+        setUnifiedTitles((prev) => ({...prev, [parsed.title]: Torr.title}));
+      }
+    })
+  }, [filteredMovies])
+
+  useMemo(() => {
+    // loop over cachedImages and set the image if it's not set yet.
+    Object.keys(unifiedTitles).map(async (title) => {
+      if (!cachedImages[title]) {
+        const image = await TorrentNameToImage(unifiedTitles[title]);
+        setCachedImages((prev) => ({...prev, [title]: image}));
+      }
+    })
+
+  }, [unifiedTitles])
+
+
 
 
 
@@ -114,12 +138,14 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
           <TorrentDownloadBox
             key={torr.download}
             title={torr.title}
+            imageUrl={cachedImages[ParseTorrent(torr.title).title]}
             magnetURL={torr.download}
           >
             {props.category === "Movies" && (
               <TorrentMovieData
                 quality={parseFromString(torr.title, qualityAliases)}
                 type={parseFromString(torr.title, typeAliases)}
+
                 size={torr.size}
               />
             )}

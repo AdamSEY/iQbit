@@ -155,6 +155,30 @@ const TPBSearch = (props: SearchProviderComponentProps) => {
     props.filterState.qualitySelected,
   ]);
 
+  const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
+  const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
+
+  useMemo(() => {
+    filteredMovies.map(async (Torr) => {
+      const parsed = ParseTorrent(Torr.name);
+      if (!unifiedTitles.hasOwnProperty(parsed.title)) {
+        setUnifiedTitles((prev) => ({...prev, [parsed.title]: Torr.name}));
+      }
+    })
+  }, [filteredMovies])
+
+  useMemo(() => {
+    // loop over cachedImages and set the image if it's not set yet.
+    Object.keys(unifiedTitles).map(async (title) => {
+      if (!cachedImages[title]) {
+        const image = await TorrentNameToImage(unifiedTitles[title]);
+        setCachedImages((prev) => ({...prev, [title]: image}));
+      }
+    })
+
+  }, [unifiedTitles])
+
+
 
   return (
     <VStack>
@@ -172,6 +196,7 @@ const TPBSearch = (props: SearchProviderComponentProps) => {
           <TorrentDownloadBox
             key={torr.info_hash}
             title={torr.name}
+            imageUrl={cachedImages[ParseTorrent(torr.name).title]}
             magnetURL={torr.info_hash}
           >
             {props.category === "Video" && (

@@ -75,11 +75,11 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
         }
     );
 
-    // useEffect(() => {
-    //     if (data?.results && data.results.length > 400) {
-    //         stopSearch();
-    //     }
-    // }, [data, stopSearch])
+    useEffect(() => {
+        if (data?.results && data.results.length > 500) {
+            stopSearch();
+        }
+    }, [data, stopSearch])
 
     let filteredResults = useMemo(() => {
         return (data?.results || [])
@@ -129,7 +129,7 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
 
     const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
     const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
-    const [finished, setFinished] = useState(false);
+
     useMemo(() => {
         filteredResults.map(async (Torr) => {
             const parsed = ParseTorrent(Torr.fileName);
@@ -146,9 +146,6 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
                 const image = await TorrentNameToImage(unifiedTitles[title]);
                 setCachedImages((prev) => ({...prev, [title]: image}));
             }
-            if (Object.keys(cachedImages).length === Object.keys(unifiedTitles).length) {
-                setFinished(true);
-            }
         })
 
     }, [unifiedTitles])
@@ -163,7 +160,7 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
                 placeholder={`Search ${props.category}...`}
             />
 
-            {searchId && finished && cachedImages && (
+            {searchId && (
                 <Flex
                     position={"sticky"}
                     top={16}
