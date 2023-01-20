@@ -2,12 +2,13 @@ import React, { useMemo, useState } from "react";
 import {
     Box,
     Button,
-    Flex,
+    Flex, Image,
     LightMode,
     Spinner,
     Text,
     useColorModeValue,
     useDisclosure,
+    NumberInputField, NumberInput, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper,
 } from "@chakra-ui/react";
 import PageHeader from "../components/PageHeader";
 import { useMutation, useQuery } from "react-query";
@@ -25,16 +26,17 @@ import { providers } from "./SearchPage";
 import { useNavigate } from "react-router-dom";
 import { SearchPluginsPageQuery } from "./SearchPluginsPage";
 import { TorrClient } from "../utils/TorrClient";
+import {Input} from "@chakra-ui/input";
 
 
 export interface TrendingPageProps {}
 
-const smallImage = "http://image.tmdb.org/t/p/w200";
-const originalImage = "http://image.tmdb.org/t/p/original";
+const smallImage = "https://image.tmdb.org/t/p/w200";
+const originalImage = "https://image.tmdb.org/t/p/original";
 
 
 const TrendingPage = (props: TrendingPageProps) => {
-    const tabs = ["Movies", "TV", "TOP 100"];
+    const tabs = ["Movies", "TV", "TOP 100", "Trending Per Year"];
     const [tab, setTab] = useState(0);
 
     const [selectedMovie, setSelectedMovie] = useState<MovieResult>();
@@ -44,30 +46,39 @@ const TrendingPage = (props: TrendingPageProps) => {
             media_type: "movie",
             time_window: "day",
         })
-    );
+    , { enabled: tab === 0 });
 
-    const [currentPage, setCurrentPage] = useState(1);
 
+    const [page, setPage] = React.useState(1)
     const [topMoviesData, setTopMoviesData] = useState<MovieResult[]>([]);
+    useQuery({
+        queryKey: ['getTopMovies', page],
+        queryFn: () => tmdbClient.movieTopRated({
+            page: page,
+        }),
+        onSuccess: (data) => {
+            setTopMoviesData(data?.results ?? []);
+        },
+        keepPreviousData : true,
+        enabled: tab === 2,
+    })
 
-    const {refetch} = useQuery("getTopMovies", async () => {
-            const res = await tmdbClient.movieTopRated({
-                page: currentPage,
-            })
-            setCurrentPage(currentPage + 1);
-            setTopMoviesData([...topMoviesData, ...res?.results ?? []]);
-            return res;
-        }
-    );
-
-
-    const handleLoadMore = async () => {
-        const newPage = currentPage + 1;
-        setCurrentPage(newPage);
-        let { data } = await refetch({queryKey: `getTopMovies:${newPage}`});
-        setTopMoviesData([...topMoviesData, ...data?.results ?? []]);
-    };
-
+    const [page1, setPage1] = React.useState(1)
+    const [year, setYear] = React.useState(2023)
+    const [yearTrending, setYearTrending] = useState<MovieResult[]>([]);
+    useQuery({
+        queryKey: ['yearTrending', page1, year],
+        queryFn: () => tmdbClient.discoverMovie({
+            page: page1,
+            year: year,
+            sort_by: "popularity.desc",
+        }),
+        onSuccess: (data) => {
+            setYearTrending(data?.results ?? []);
+        },
+        keepPreviousData : true,
+        enabled: tab === 3,
+    })
 
 
     const {
@@ -87,6 +98,7 @@ const TrendingPage = (props: TrendingPageProps) => {
             media_type: "tv",
             time_window: "day",
         })
+        , { enabled: tab === 1 }
     );
 
     const { data: plugins } = useQuery(
@@ -164,12 +176,49 @@ const TrendingPage = (props: TrendingPageProps) => {
                         variant={"ghost"}
                         size={"xl"}
                         colorScheme={"blue"}
-                        onClick={handleLoadMore}
+                        onClick={()=>{setPage(page+1)}}
                     >
                         Load More
                     </Button>
                 </>
 
+            ) : tab === 3 ? (
+
+                <>
+
+                    <NumberInput onChange={(e)=>{
+                        if (e.length === 4) {
+                            setYear(parseInt(e));
+                            setPage1(1)
+                        }
+                    }} defaultValue={year} min={1920} max={2024}>
+                        <NumberInputField />
+                        <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                        </NumberInputStepper>
+                    </NumberInput>
+                    <PosterGrid
+                    list={(yearTrending as MovieResult[]) || []}
+                    keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
+                    titleExtractor={(movie) => movie?.title || "Unknown Title"}
+                    images={(movie) => ({
+                        large: originalImage + movie.poster_path || "",
+                        small: smallImage + movie.poster_path || "",
+                    })}
+                    onSelect={(movie) => {
+                        movieBottomSheet.onOpen();
+                        setSelectedMovie(movie);
+                    }}/>
+                    <Button
+                        variant={"ghost"}
+                        size={"xl"}
+                        colorScheme={"blue"}
+                        onClick={() => {setPage1(page1+1)}}
+                    >
+                        Load More
+                    </Button>
+                </>
             ) : null}
 
             <IosBottomSheet
@@ -259,6 +308,19 @@ const TrendingPage = (props: TrendingPageProps) => {
                             );
                         })}
                     </SectionSM>
+                    <SectionSM title={"Trailer"}>
+                        <Flex justifyContent={"center"} w={"full"}>
+                            <Image width={"50%"} height={"50%"}  src={originalImage + selectedMovie?.backdrop_path}></Image>
+                        </Flex>
+                        <Flex justifyContent={"center"} w={"full"}>
+                            <Button
+                                colorScheme={"gray"}
+                                onClick={() => window.open(`https://www.youtube.com/results?search_query=${selectedMovie?.title}+trailer`, "_blank")}
+                            >
+                                View Trailer
+                            </Button>
+                        </Flex>
+                    </SectionSM>
                     <SectionSM title={"Description"}>
                         <Text>{selectedMovie?.overview}</Text>
                     </SectionSM>
@@ -308,6 +370,19 @@ const TrendingPage = (props: TrendingPageProps) => {
                                     </LightMode>
                                 </Flex>
                             ))}
+                        </Flex>
+                    </SectionSM>
+                    <SectionSM title={"Trailer"}>
+                        <Flex justifyContent={"center"} w={"full"}>
+                            <Image width={"50%"} height={"50%"}  src={originalImage + selectedTv?.backdrop_path}></Image>
+                        </Flex>
+                        <Flex justifyContent={"center"} w={"full"}>
+                            <Button
+                                colorScheme={"gray"}
+                                onClick={() => window.open(`https://www.youtube.com/results?search_query=${selectedTv?.name}+trailer`, "_blank")}
+                            >
+                                View Trailer
+                            </Button>
                         </Flex>
                     </SectionSM>
                     <SectionSM title={"Description"}>

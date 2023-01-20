@@ -16,14 +16,18 @@ const TorrentNameToImage = async (fileName: string) => {
     if (movies.results) {
         results = movies.results.reduce((acc, curr) => {
             const d = curr as unknown as SearchResult;
-            if (parsed.year && d.release_date && d.release_date.toString().includes(parsed.year.toString())) {
-                acc.push(curr as unknown as SearchResult);
+            if (parsed.year && parsed.year > 0){
+                if (d.release_date && d.release_date.toString().includes(parsed.year.toString())) {
+                    acc.push(d);
+                }
+            }else{
+                acc.push(d);
             }
             return acc;
         }, [] as SearchResult[]);
     }
     if (results && results.length > 0 && results[0].poster_path) {
-        return `https://image.tmdb.org/t/p/w500${results[0].poster_path}`;
+        return `https://image.tmdb.org/t/p/w200${results[0].poster_path}`;
     }else{
         return unavailable;
     }
