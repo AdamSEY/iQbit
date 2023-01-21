@@ -72,7 +72,7 @@ const TorrentInformationContent = ({
     queryKey: ['getImage', parsed.title],
     queryFn: () => TorrentNameToImage(torrentData.name),
     onSuccess: (data) => {
-      setImage(data);
+      setImage(data.url);
     },
   })
 

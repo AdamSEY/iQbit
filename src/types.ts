@@ -191,6 +191,11 @@ export type parser = {
   language?: string;
   originalTitle?: string;
 };
+export type ImageCached = {
+    url: string;
+    searchResult: SearchResult;
+    parsed: parser;
+}
 
 export enum TorrSettingsScanDirsEnum {
   DownloadToMonitoredFolder,
