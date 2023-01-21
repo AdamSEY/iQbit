@@ -6,7 +6,7 @@ import {
   Flex,
   GridItem,
   GridItemProps,
-  Heading,
+  Heading, Image,
   LightMode,
   Progress,
   SimpleGrid,
@@ -18,6 +18,9 @@ import ActivityRings from "react-activity-rings";
 import filesize from "filesize";
 import SwarmVisualizer from "./SwarmVisualizer";
 import { CreateETAString } from "../utils/createETAString";
+import ParseTorrent from "../utils/ParseTorrent";
+import TorrentNameToImage from "../utils/TorrentNameToImage";
+import {useQuery} from "react-query";
 
 export interface TorrentInformationContentProps {
   torrentData: TorrTorrentInfo;
@@ -62,11 +65,28 @@ const TorrentInformationContent = ({
   const date = new Date(0);
   date.setSeconds(torrentData.eta); // specify value for SECONDS here
   const timeString = torrentData.eta ? CreateETAString(date) : "";
+  const parsed = ParseTorrent(torrentData.name);
+
+  const [image, setImage] = React.useState<string | undefined>(undefined);
+  useQuery({
+    queryKey: ['getImage', parsed.title],
+    queryFn: () => TorrentNameToImage(torrentData.name),
+    onSuccess: (data) => {
+      setImage(data);
+    },
+  })
+
 
   return (
     <>
       <IosGridBox mb={3} title={"Torrent Name"}>
         <Heading wordBreak={"break-all"}>{torrentData.name}</Heading>
+      </IosGridBox>
+      <IosGridBox mb={3} title={"Movie Name"}>
+        <Heading wordBreak={"break-all"}>{parsed.originalTitle}</Heading>
+        <Heading size={"sm"} wordBreak={"break-all"}>
+          {image && <Image src={image} />}
+        </Heading>
       </IosGridBox>
       <SimpleGrid columns={4} templateRows={"auto"} gap={defaultGap}>
         <IosGridBox

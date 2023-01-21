@@ -168,6 +168,29 @@ export type TorrPluginSearchResultResponse = {
   status: TorrSearchStatuses;
   total: number;
 };
+export type parser = {
+  title: string;
+  year?: number;
+  resolution?: string;
+  extended?: boolean;
+  unrated?: boolean;
+  proper?: boolean;
+  repack?: boolean;
+  convert?: boolean;
+  hardcoded?: boolean;
+  retail?: boolean;
+  remastered?: boolean;
+  region?: string;
+  container?: string;
+  source?: string;
+  codec?: string;
+  audio?: string;
+  group?: string;
+  season?: number;
+  episode?: number;
+  language?: string;
+  originalTitle?: string;
+};
 
 export enum TorrSettingsScanDirsEnum {
   DownloadToMonitoredFolder,

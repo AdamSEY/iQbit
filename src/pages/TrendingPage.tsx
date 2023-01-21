@@ -64,7 +64,7 @@ const TrendingPage = (props: TrendingPageProps) => {
     })
 
     const [page1, setPage1] = React.useState(1)
-    const [year, setYear] = React.useState(2023)
+    const [year, setYear] = React.useState(new Date().getFullYear())
     const [yearTrending, setYearTrending] = useState<MovieResult[]>([]);
     useQuery({
         queryKey: ['yearTrending', page1, year],
@@ -191,7 +191,7 @@ const TrendingPage = (props: TrendingPageProps) => {
                             setYear(parseInt(e));
                             setPage1(1)
                         }
-                    }} defaultValue={year} min={1920} max={2024}>
+                    }} defaultValue={year} min={1920} max={2030}>
                         <NumberInputField />
                         <NumberInputStepper>
                             <NumberIncrementStepper />

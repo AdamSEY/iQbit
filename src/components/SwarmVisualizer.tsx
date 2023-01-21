@@ -66,7 +66,7 @@ const SwarmVisualizer = ({
       .flat();
   }, [connected, swarm]);
 
-  console.log(connectedIndex);
+  // console.log(connectedIndex);
 
   return (
     <>

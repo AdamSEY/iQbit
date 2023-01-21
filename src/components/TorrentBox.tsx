@@ -223,6 +223,7 @@ const TorrentBox = ({
             <Flex alignItems={"center"}>
               <Heading
                 textAlign={"left"}
+                onClick={() => TorrentInformationDisclosure.onOpen()}
                 cursor={"pointer"}
                 noOfLines={1}
                 size={"lg"}
