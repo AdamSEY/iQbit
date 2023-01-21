@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import {SearchProviderComponentProps, SearchResult} from "../types";
+import {ImageCached, SearchProviderComponentProps, SearchResult} from "../types";
 import IosSearch from "../components/ios/IosSearch";
 import {
     AspectRatio,
@@ -81,15 +81,23 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
         }
     }, [data, stopSearch])
 
+    const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
+    const [cachedImages, setCachedImages] = useState<{[key: string]: ImageCached}>({});
+
+
     let filteredResults = useMemo(() => {
         return (data?.results || [])
             .filter((Torr) => {
-                if (props.filterState.qualitySelected !== undefined) {
-                    const qual = parseFromString(Torr.fileName, qualityAliases);
-                    return qual === props.filterState.qualitySelected;
-                } else {
-                    return true;
-                }
+                if (props.filterState.qualitySelected !== undefined){
+                    const parsedFileName = ParseTorrent(Torr.fileName);
+                    console.log(props.filterState.qualitySelected, parsedFileName.resolution)
+                    if (props.filterState.qualitySelected === parsedFileName.resolution) {
+                        return true;
+                    }
+                    if (props.filterState.qualitySelected === "2160p" && parsedFileName.resolution === "4k") {
+                        return true;
+                    }
+                }else return true;
             })
             .filter((Torr) => {
                 if (props.filterState.selectedSource !== "") {
@@ -101,6 +109,7 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
             })
             // filter: filename has to contain props.searchState[0]
             .filter((Torr) => {
+
                 const parsedSearch = ParseTorrent(props.searchState[0]);
                 const parsedFileName = ParseTorrent(Torr.fileName);
                 // if the title is not similar to what we're search for, don't show it.
@@ -127,8 +136,6 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
         props.filterState.qualitySelected,
     ]);
 
-    const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
-    const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
 
     useMemo(() => {
         filteredResults.map(async (Torr) => {
@@ -143,8 +150,8 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
         // loop over cachedImages and set the image if it's not set yet.
         Object.keys(unifiedTitles).map(async (title) => {
             if (!cachedImages[title]) {
-                const image = await TorrentNameToImage(unifiedTitles[title]);
-                setCachedImages((prev) => ({...prev, [title]: image}));
+                const result = await TorrentNameToImage(unifiedTitles[title]) as ImageCached;
+                setCachedImages((prev) => ({...prev, [title]: result}));
             }
         })
 
@@ -196,24 +203,33 @@ const PluginSearch = (props: SearchProviderComponentProps) => {
             )}
             {(!data?.results?.length || true) && <Filters {...props.filterState} />}
 
-            {filteredResults.map((result) => (
+            {filteredResults.map((result) => {
+                const torrentInfo = cachedImages[ParseTorrent(result.fileName).title];
+                const language = new Intl.DisplayNames(['en'] , {type: "language"});
+                const lang = language.of(torrentInfo?.searchResult?.original_language || "en");
+                return (
+                    <TorrentDownloadBox
+                        key={result.fileUrl}
+                        magnetURL={result.fileUrl}
+                        imageUrl={torrentInfo?.url}
+                        searchResult={torrentInfo?.searchResult}
+                        title={result.fileName}>
+                        <TorrentMovieData
+                            quality={parseFromString(result.fileName, qualityAliases)}
+                            type={parseFromString(result.fileName, typeAliases)}
+                            size={parseInt(result.fileSize.toString())}
+                            language={lang}
+                        />
 
-                <TorrentDownloadBox
-                    key={result.fileUrl}
-                    magnetURL={result.fileUrl}
-                    imageUrl={cachedImages[ParseTorrent(result.fileName).title]}
-                    title={result.fileName}>
-                    <TorrentMovieData
-                        quality={parseFromString(result.fileName, qualityAliases)}
-                        type={parseFromString(result.fileName, typeAliases)}
-                        size={parseInt(result.fileSize.toString())}
-                    />
-                    <SeedsAndPeers
-                        seeds={result.nbSeeders.toString()}
-                        peers={result.nbLeechers.toString()}
-                    />
-                </TorrentDownloadBox>
-            ))}
+                        <SeedsAndPeers
+                            seeds={result.nbSeeders.toString()}
+                            peers={result.nbLeechers.toString()}
+                        />
+                    </TorrentDownloadBox>
+                )
+                }
+            )}
+
         </VStack>
     );
 };

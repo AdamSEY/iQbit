@@ -1,6 +1,6 @@
 import React from "react";
 import { StatWithIcon } from "./StatWithIcon";
-import { IoCube, IoFilm, IoTv } from "react-icons/io5";
+import {IoCube, IoFilm, IoLanguage, IoTv} from "react-icons/io5";
 import filesize from "filesize";
 import { SimpleGrid } from "@chakra-ui/react";
 import { torrentBoxIconProps } from "../searchAPIs/yts";
@@ -9,6 +9,7 @@ export interface TorrentMovieDataProps {
   quality?: string;
   type?: string;
   size?: number | string;
+  language?: string;
 }
 
 const TorrentMovieData = (props: TorrentMovieDataProps) => {
@@ -37,7 +38,12 @@ const TorrentMovieData = (props: TorrentMovieDataProps) => {
         label={props.type}
       />
         )}
-
+        { props.language && (
+            <StatWithIcon
+                lit
+                icon={<IoLanguage {...torrentBoxIconProps} />}
+                label={props.language}
+            />)}
     </SimpleGrid>
   );
 };

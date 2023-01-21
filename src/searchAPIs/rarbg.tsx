@@ -1,4 +1,4 @@
-import { SearchProviderComponentProps } from "../types";
+import {ImageCached, SearchProviderComponentProps} from "../types";
 import { Flex, VStack } from "@chakra-ui/react";
 import IosSearch from "../components/ios/IosSearch";
 import { useMutation } from "react-query";
@@ -65,12 +65,16 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
         pubdate: new Date(torr.pubdate),
       }))
       .filter((Torr) => {
-        if (props.filterState.qualitySelected !== undefined) {
-          const qual = parseFromString(Torr.title, qualityAliases);
-          return qual === props.filterState.qualitySelected;
-        } else {
-          return true;
-        }
+        if (props.filterState.qualitySelected !== undefined){
+          const parsedFileName = ParseTorrent(Torr.title);
+          console.log(props.filterState.qualitySelected, parsedFileName.resolution)
+          if (props.filterState.qualitySelected === parsedFileName.resolution) {
+            return true;
+          }
+          if (props.filterState.qualitySelected === "2160p" && parsedFileName.resolution === "4k") {
+            return true;
+          }
+        }else return true;
       })
       .filter((Torr) => {
         if (props.filterState.selectedSource !== "") {
@@ -95,7 +99,7 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
   ]);
 
   const [unifiedTitles, setUnifiedTitles] = useState<{[key: string]: string}>({});
-  const [cachedImages, setCachedImages] = useState<{[key: string]: string}>({});
+  const [cachedImages, setCachedImages] = useState<{[key: string]: ImageCached}>({});
 
   useMemo(() => {
     filteredMovies.map(async (Torr) => {
@@ -110,8 +114,8 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
     // loop over cachedImages and set the image if it's not set yet.
     Object.keys(unifiedTitles).map(async (title) => {
       if (!cachedImages[title]) {
-        const image = await TorrentNameToImage(unifiedTitles[title]);
-        setCachedImages((prev) => ({...prev, [title]: image}));
+        const result = await TorrentNameToImage(unifiedTitles[title]);
+        setCachedImages((prev) => ({...prev, [title]: result}));
       }
     })
 
@@ -134,27 +138,32 @@ const RarbgSearch = (props: SearchProviderComponentProps) => {
         {(!data?.torrent_results?.length || true) && (
           <Filters {...props.filterState} />
         )}
-        {filteredMovies?.map((torr) => (
-          <TorrentDownloadBox
-            key={torr.download}
-            title={torr.title}
-            imageUrl={cachedImages[ParseTorrent(torr.title).title]}
-            magnetURL={torr.download}
-          >
-            {props.category === "Movies" && (
-              <TorrentMovieData
-                quality={parseFromString(torr.title, qualityAliases)}
-                type={parseFromString(torr.title, typeAliases)}
+        {filteredMovies.map((result) => {
+              const torrentInfo = cachedImages[ParseTorrent(result.title).title];
+              const language = new Intl.DisplayNames(['en'] , {type: "language"});
+              const lang = language.of(torrentInfo?.searchResult?.original_language || "en");
+              return (
+                  <TorrentDownloadBox
+                      key={result.title}
+                      magnetURL={result.download}
+                      imageUrl={torrentInfo?.url}
+                      searchResult={torrentInfo?.searchResult}
+                      title={result.title}>
+                    <TorrentMovieData
+                        quality={parseFromString(result.title, qualityAliases)}
+                        type={parseFromString(result.title, typeAliases)}
+                        size={parseInt(result.size.toString())}
+                        language={lang}
+                    />
 
-                size={torr.size}
-              />
-            )}
-            <SeedsAndPeers
-              seeds={torr.seeders.toString()}
-              peers={torr.leechers.toString()}
-            />
-          </TorrentDownloadBox>
-        ))}
+                    <SeedsAndPeers
+                        seeds={result.seeders.toString()}
+                        peers={result.leechers.toString()}
+                    />
+                  </TorrentDownloadBox>
+              )
+            }
+        )}
       </Flex>}
     </VStack>
   );
