@@ -62,7 +62,7 @@ const TorrentDownloadBox = ({
       >
 
         <Card
-            direction={{ base: 'column', sm: 'row',  }}
+            direction={{ base: 'row', md: 'row', sm: 'column'}}
             flex={1}
             overflow='hidden'
             variant='outline'
