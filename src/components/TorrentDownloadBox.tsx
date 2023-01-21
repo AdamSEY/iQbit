@@ -1,14 +1,12 @@
 import React, {PropsWithChildren} from "react";
 import {
-  Box,
+
   Button, Text,
   Flex,
   Heading,
   LightMode,
   useColorModeValue,
   Stack,
-  Divider,
-  ButtonGroup, Center, AccordionItem, AccordionIcon, AccordionButton, AccordionPanel, Accordion, Collapse
 } from "@chakra-ui/react";
 import { useIsLargeScreen } from "../utils/screenSize";
 import { useMutation } from "react-query";
@@ -85,6 +83,7 @@ const TorrentDownloadBox = ({
               </Text>
             </CardBody>
             <CardFooter>
+              <LightMode>
               <Button variant='solid' colorScheme={isSuccess ? "green" : "blue"}
                       minW={32}
                       disabled={
@@ -102,6 +101,7 @@ const TorrentDownloadBox = ({
                       leftIcon={isSuccess ? <IoCheckmark /> : undefined}>
                 {isSuccess ? "Downloading" : "Download"}
               </Button>
+              </LightMode>
             </CardFooter>
           </Stack>
         </Card>

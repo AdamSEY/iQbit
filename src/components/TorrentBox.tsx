@@ -238,9 +238,7 @@ const TorrentBox = ({
               )}
             </Flex>
           </PopoverTrigger>
-          <PopoverContent>
-            <PopoverBody textAlign={"center"}>{torrentData.name}</PopoverBody>
-          </PopoverContent>
+
         </Popover>
         <HStack color={"grayAlpha.800"} gap={2}>
           <StatWithIcon
