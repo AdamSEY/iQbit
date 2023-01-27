@@ -16,15 +16,15 @@ export interface NavButtonProps {
 const NavButton = (props: NavButtonProps) => {
   const isLarge = useIsLargeScreen();
   const location = useLocation();
-  const isSearch =
-    location.pathname.includes("/search") ||
+  const isTrending =
+    location.pathname.includes("/trending") ||
     (isLarge && location.pathname === "/");
 
   return (
     <NavLink to={props.path}>
       {({ isActive: navActive }) => {
         const isActive =
-          isSearch && props.label === "Search" ? true : navActive;
+            isTrending && props.label === "Trending" ? true : navActive;
 
         return (
           <Button

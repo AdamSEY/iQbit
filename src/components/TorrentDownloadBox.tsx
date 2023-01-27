@@ -6,15 +6,16 @@ import {
   Heading,
   LightMode,
   useColorModeValue,
-  Stack,
+  Stack, Link,
 } from "@chakra-ui/react";
 import { useIsLargeScreen } from "../utils/screenSize";
 import { useMutation } from "react-query";
 import { TorrClient } from "../utils/TorrClient";
-import { IoCheckmark } from "react-icons/io5";
+import {IoCheckmark, IoOpen} from "react-icons/io5";
 import { Image } from "@chakra-ui/image";
 import { Card, CardHeader, CardBody, CardFooter, StackDivider } from '@chakra-ui/react'
 import {SearchResult} from "../types";
+import TorrentExtraInfo from "./TorrentExtraInfo";
 
 export interface TorrentDownloadBoxProps {
   title?: string;
@@ -101,6 +102,7 @@ const TorrentDownloadBox = ({
                       leftIcon={isSuccess ? <IoCheckmark /> : undefined}>
                 {isSuccess ? "Downloading" : "Download"}
               </Button>
+               <TorrentExtraInfo magnet_uri={magnetURL} />
               </LightMode>
             </CardFooter>
           </Stack>

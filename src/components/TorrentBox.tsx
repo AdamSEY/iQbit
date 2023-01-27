@@ -37,7 +37,7 @@ import {
   IoSpeedometer,
 } from "react-icons/io5";
 import { StatWithIcon } from "./StatWithIcon";
-import { useMutation } from "react-query";
+import {useMutation} from "react-query";
 import { TorrClient } from "../utils/TorrClient";
 import IosActionSheet from "./ios/IosActionSheet";
 import IosBottomSheet from "./ios/IosBottomSheet";
@@ -238,7 +238,6 @@ const TorrentBox = ({
               )}
             </Flex>
           </PopoverTrigger>
-
         </Popover>
         <HStack color={"grayAlpha.800"} gap={2}>
           <StatWithIcon

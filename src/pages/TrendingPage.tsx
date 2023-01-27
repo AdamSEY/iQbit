@@ -27,6 +27,7 @@ import { useNavigate } from "react-router-dom";
 import { SearchPluginsPageQuery } from "./SearchPluginsPage";
 import { TorrClient } from "../utils/TorrClient";
 import {Input} from "@chakra-ui/input";
+import TorrentExtraInfo from "../components/TorrentExtraInfo";
 
 
 export interface TrendingPageProps {}
@@ -36,7 +37,7 @@ const originalImage = "https://image.tmdb.org/t/p/original";
 
 
 const TrendingPage = (props: TrendingPageProps) => {
-    const tabs = ["Movies", "TV", "TOP 100", "Trending Per Year"];
+    const tabs = ["Movies", "TV", "TOP 100", "Year"];
     const [tab, setTab] = useState(0);
 
     const [selectedMovie, setSelectedMovie] = useState<MovieResult>();
@@ -308,22 +309,8 @@ const TrendingPage = (props: TrendingPageProps) => {
                             );
                         })}
                     </SectionSM>
-                    <SectionSM title={"Trailer"}>
-                        <Flex justifyContent={"center"} w={"full"}>
-                            <Image width={"50%"} height={"50%"}  src={originalImage + selectedMovie?.backdrop_path}></Image>
-                        </Flex>
-                        <Flex justifyContent={"center"} w={"full"}>
-                            <Button
-                                colorScheme={"gray"}
-                                onClick={() => window.open(`https://www.youtube.com/results?search_query=${selectedMovie?.title}+trailer`, "_blank")}
-                            >
-                                View Trailer
-                            </Button>
-                        </Flex>
-                    </SectionSM>
-                    <SectionSM title={"Description"}>
-                        <Text>{selectedMovie?.overview}</Text>
-                    </SectionSM>
+                    <TorrentExtraInfo image={originalImage + selectedMovie?.backdrop_path} overview={selectedMovie?.overview} title={selectedMovie?.title ?? ""}/>
+
                 </Flex>
             </IosBottomSheet>
 
@@ -372,22 +359,7 @@ const TrendingPage = (props: TrendingPageProps) => {
                             ))}
                         </Flex>
                     </SectionSM>
-                    <SectionSM title={"Trailer"}>
-                        <Flex justifyContent={"center"} w={"full"}>
-                            <Image width={"50%"} height={"50%"}  src={originalImage + selectedTv?.backdrop_path}></Image>
-                        </Flex>
-                        <Flex justifyContent={"center"} w={"full"}>
-                            <Button
-                                colorScheme={"gray"}
-                                onClick={() => window.open(`https://www.youtube.com/results?search_query=${selectedTv?.name}+trailer`, "_blank")}
-                            >
-                                View Trailer
-                            </Button>
-                        </Flex>
-                    </SectionSM>
-                    <SectionSM title={"Description"}>
-                        <Text>{selectedTv?.overview}</Text>
-                    </SectionSM>
+                    <TorrentExtraInfo image={originalImage + selectedTv?.backdrop_path} overview={selectedTv?.overview} title={selectedTv?.name ?? ""}/>
                 </Flex>
             </IosBottomSheet>
         </>

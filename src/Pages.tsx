@@ -64,16 +64,7 @@ export const Pages: PageObject[] = [
     },
     visibleOn: ["bottomNav"],
   },
-  {
-    label: "Search",
-    url: "/search",
-    component: <SearchPage />,
-    Icon: {
-      active: (props) => <IoSearch {...props} />,
-      inactive: (props) => <IoSearchOutline {...props} />,
-    },
-    visibleOn: ["bottomNav", "sideNav", "tabSelector"],
-  },
+
   {
     label: "Trending",
     url: "/trending",
@@ -81,6 +72,16 @@ export const Pages: PageObject[] = [
     Icon: {
       active: (props) => <IoTrendingUp {...props} />,
       inactive: (props) => <IoTrendingUpOutline {...props} />,
+    },
+    visibleOn: ["bottomNav", "sideNav", "tabSelector"],
+  },
+  {
+    label: "Search",
+    url: "/search",
+    component: <SearchPage />,
+    Icon: {
+      active: (props) => <IoSearch {...props} />,
+      inactive: (props) => <IoSearchOutline {...props} />,
     },
     visibleOn: ["bottomNav", "sideNav", "tabSelector"],
   },

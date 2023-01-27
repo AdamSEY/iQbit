@@ -62,6 +62,33 @@ export const TorrClient = {
     return data;
   },
 
+  getFiles: async (hash: string): Promise<TorrTorrentInfo[]> => {
+    const { data } = await APICall.get("torrents/files", {
+      params: {
+        hash: hash,
+      },
+    });
+
+    return data;
+  },
+  getTrackers: async (hash: string): Promise<TorrTorrentInfo[]> => {
+    const { data } = await APICall.get("torrents/trackers", {
+      params: {
+        hash: hash,
+      },
+    });
+
+    return data;
+  },
+  getInfo: async (hash: string): Promise<TorrTorrentInfo[]> => {
+    const { data } = await APICall.get("torrents/info", {
+      params: {
+        hash: hash,
+      },
+    });
+
+    return data;
+  },
   // getProperties: async (hash) => {
   //   return await APICall.get("torrents/properties", {
   //     params: {

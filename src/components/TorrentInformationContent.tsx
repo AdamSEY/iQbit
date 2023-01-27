@@ -9,9 +9,9 @@ import {
   Heading, Image,
   LightMode,
   Progress,
-  SimpleGrid,
+  SimpleGrid, Table, Tbody, Td, Text, Th, Thead, Tr,
   useDisclosure,
-  useTheme,
+  useTheme, Wrap,
 } from "@chakra-ui/react";
 //@ts-ignore
 import ActivityRings from "react-activity-rings";
@@ -21,7 +21,10 @@ import { CreateETAString } from "../utils/createETAString";
 import ParseTorrent from "../utils/ParseTorrent";
 import TorrentNameToImage from "../utils/TorrentNameToImage";
 import {useQuery} from "react-query";
-
+import {SectionSM} from "../searchAPIs/yts";
+import {TorrClient} from "../utils/TorrClient";
+import WebTorrentModel from "./WebTorrentModel";
+import TorrentExtraInfo from "./TorrentExtraInfo";
 export interface TorrentInformationContentProps {
   torrentData: TorrTorrentInfo;
 }
@@ -68,13 +71,23 @@ const TorrentInformationContent = ({
   const parsed = ParseTorrent(torrentData.name);
 
   const [image, setImage] = React.useState<string | undefined>(undefined);
+  const [overview, setOverview] = React.useState<string>("");
   useQuery({
     queryKey: ['getImage', parsed.title],
     queryFn: () => TorrentNameToImage(torrentData.name),
     onSuccess: (data) => {
       setImage(data.url);
+      setOverview(data.searchResult.overview)
     },
   })
+
+  const { data: files } = useQuery({
+    queryKey: ['files', torrentData.hash],
+    queryFn: () => TorrClient.getFiles(torrentData.hash),
+    enabled: !!torrentData.hash
+  });
+
+
 
 
   return (
@@ -84,9 +97,31 @@ const TorrentInformationContent = ({
       </IosGridBox>
       <IosGridBox mb={3} title={"Movie Name"}>
         <Heading wordBreak={"break-all"}>{parsed.originalTitle}</Heading>
-        <Heading size={"sm"} wordBreak={"break-all"}>
-          {image && <Image src={image} />}
-        </Heading>
+        <TorrentExtraInfo image={image} overview={overview} title={parsed.originalTitle ?? ""} magnet_uri={torrentData.magnet_uri}/>
+
+        <SectionSM title={"Files"}>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>File Name</Th>
+                <Th>Size</Th>
+                <Th>Progress</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+
+              {files?.map((file, index) => (
+
+                  <Tr key={index}>
+                    <Td>{file.name}</Td>
+                    <Td>{filesize(file.size, {round: 1})}</Td>
+                    <Td>{(100 * file.progress).toFixed(0)}%</Td>
+                  </Tr>
+              ))}
+
+            </Tbody>
+          </Table>
+        </SectionSM>
       </IosGridBox>
       <SimpleGrid columns={4} templateRows={"auto"} gap={defaultGap}>
         <IosGridBox

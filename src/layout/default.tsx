@@ -180,7 +180,7 @@ const DefaultLayout = (props: PropsWithChildren<DefaultLayoutProps>) => {
               overflowX={"hidden"}
             >
               {pathname === "/"
-                ? Pages.filter((page) => page.label === "Search")[0].component
+                ? Pages.filter((page) => page.label === "Trending")[0].component
                 : props.children}
             </Flex>
           </Flex>

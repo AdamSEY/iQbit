@@ -30,7 +30,7 @@ import "react-virtualized/styles.css";
 import { FilterHeading } from "../components/Filters";
 import stateDictionary from "../utils/StateDictionary";
 import { useLocalStorage } from "usehooks-ts";
-import { useFontSizeContext } from "../components/FontSizeProvider"; // only needs to be imported once
+import { useFontSizeContext } from "../components/FontSizeProvider";
 
 const Home = () => {
   const { mutate: resumeAll } = useMutation("resumeAll", TorrClient.resumeAll);
