@@ -525,3 +525,47 @@ export type rarbgTorrent = {
   ranked: number;
   info_page: string;
 };
+
+export interface Score {
+  score: string;
+  sentiment: "positive" | "negative";
+}
+
+export interface CriticsScore extends Score {
+  certifiedAttribute: "criticscertified";
+}
+
+export interface Movie {
+  audienceScore: Score;
+  criticsScore: CriticsScore;
+  fallbackPosterUrl: string;
+  id: string;
+  isVideo: boolean;
+  emsId: string;
+  mediaUrl: string;
+  mpxId: string;
+  publicId: string;
+  posterUri: string;
+  releaseDateText: string;
+  title: string;
+  trailerUrl: string;
+  type: "Movie";
+}
+
+export interface Grid {
+  id: string;
+  list: Movie[];
+}
+
+export interface PageInfo {
+  startCursor: string;
+  endCursor: string;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export type RottenTomatoesResponse = {
+  title: string;
+  grids: Grid[];
+  pageInfo: PageInfo;
+}

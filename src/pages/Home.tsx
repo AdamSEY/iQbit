@@ -18,7 +18,7 @@ import {
 import { IoDocumentAttach, IoPause, IoPlay } from "react-icons/io5";
 import { useMutation, useQuery } from "react-query";
 import { TorrClient } from "../utils/TorrClient";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import TorrentBox from "../components/TorrentBox";
 import { TorrTorrentInfo } from "../types";
 import IosBottomSheet from "../components/ios/IosBottomSheet";
@@ -31,6 +31,7 @@ import { FilterHeading } from "../components/Filters";
 import stateDictionary from "../utils/StateDictionary";
 import { useLocalStorage } from "usehooks-ts";
 import { useFontSizeContext } from "../components/FontSizeProvider";
+import filesize from "filesize";
 
 const Home = () => {
   const { mutate: resumeAll } = useMutation("resumeAll", TorrClient.resumeAll);
@@ -160,6 +161,22 @@ const Home = () => {
       )
       ?.filter(([hash, torr]) => torr.name.includes(filterSearch));
   }, [torrentsTx, removedTorrs, filterCategory, filterStatus, filterSearch]);
+
+  //   const torrentsSize = useMemo(() => {
+  //     return Torrents?.reduce((acc, [hash, torr]) => acc + torr.total_size, 0);
+  //   }, [Torrents]);
+  // make a function that returns the size of the torrents and how many torrents are there
+  const torrentInfo = useMemo(() => {
+    let totalSize = 0;
+    let totalTorrents = 0;
+    Torrents?.forEach(([hash, torr]) => {
+      totalSize += torr.total_size;
+      totalTorrents++;
+    });
+    return { totalSize, totalTorrents };
+  }, [Torrents]);
+
+
 
   const Categories = useMemo(() => {
     return Object.values(categories || {}).map((c) => ({
@@ -379,7 +396,10 @@ const Home = () => {
                 </LightMode>
               </Flex>
             )}
-
+            <Flex flexDirection={"row"} gap={7}>
+              <Heading size={'xs'}>Total size: {filesize(torrentInfo.totalSize, {round: 1})}</Heading>
+              <Heading size={'xs'}>Total torrents: {torrentInfo.totalTorrents}</Heading>
+            </Flex>
             <List
               autoWidth
               rowCount={Torrents.length}

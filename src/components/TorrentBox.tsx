@@ -16,7 +16,7 @@ import {
   Progress,
   Skeleton,
   Spinner,
-  Text,
+  Text, Tooltip,
   useColorModeValue,
   useDisclosure,
   VStack,
@@ -34,7 +34,7 @@ import {
   IoPlay,
   IoPricetags,
   IoServer,
-  IoSpeedometer,
+  IoSpeedometer, IoTrain, IoTrash, IoTrashBin,
 } from "react-icons/io5";
 import { StatWithIcon } from "./StatWithIcon";
 import {useMutation} from "react-query";
@@ -189,12 +189,17 @@ const TorrentBox = ({
             <Skeleton height={4} width={24} />
           </Flex>
           <Flex gap={2}>
-            <Skeleton height={8} width={12} />
+            <Skeleton height={8} width={12} startColor={"red.400"}
+                      endColor={"red.500"}/>
             <Skeleton
               height={8}
               width={12}
               startColor={"blue.500"}
               endColor={"blue.700"}
+            />
+            <Skeleton
+                height={8}
+                width={12}
             />
           </Flex>
         </Flex>
@@ -221,6 +226,7 @@ const TorrentBox = ({
         <Popover placement={"top"}>
           <PopoverTrigger>
             <Flex alignItems={"center"}>
+              <Tooltip label={torrentData.name}>
               <Heading
                 textAlign={"left"}
                 onClick={() => TorrentInformationDisclosure.onOpen()}
@@ -231,6 +237,7 @@ const TorrentBox = ({
               >
                 {torrentData.name}
               </Heading>
+                </Tooltip>
               {waiting === "name" && (
                 <Flex>
                   <Spinner size={"sm"} />
@@ -301,7 +308,7 @@ const TorrentBox = ({
                 }
                 label={
                   isDownloading
-                    ? torrentData.num_seeds
+                    ? `${torrentData.num_seeds}`
                     : isDone
                     ? torrentData.num_leechs
                     : 0
@@ -320,7 +327,48 @@ const TorrentBox = ({
               />
             </Flex>
           )}
-          <Flex gap={0.5}>
+          <Flex gap={0.1}>
+            <Tooltip label='Remove torrent and files'>
+              <Button
+                  variant={"ghost"}
+                  size={"md"}
+                  color={"red.400"}
+                  onClick={() => TorrClient.remove(hash, true)}
+              >
+                <IoTrash size={20} />
+              </Button>
+            </Tooltip>
+            <IosActionSheet
+                disclosure={categoryChangeDisclosure}
+                options={categories
+                    .filter((cat) => torrentData.category !== cat.name)
+                    .map((cat) => ({
+                      label: cat.name,
+                      onClick: () => changeCategory(cat.name),
+                    }))}
+            />
+            {isPaused ? (
+                <LightMode>
+                  <Button
+                      size={"md"}
+                      colorScheme={"blue"}
+                      onClick={() => resume()}
+                      isLoading={waiting === "mainBtn"}
+                  >
+                    <IoPlay size={25} />
+                  </Button>
+                </LightMode>
+            ) : (
+                <Button
+                    size={"md"}
+                    variant={"ghost"}
+                    color={"blue.500"}
+                    onClick={() => pause()}
+                    isLoading={waiting === "mainBtn"}
+                >
+                  <IoPause size={25} />
+                </Button>
+            )}
             <IosActionSheet
               trigger={
                 <Button
@@ -366,38 +414,10 @@ const TorrentBox = ({
                 },
               ]}
             />
-            <IosActionSheet
-              disclosure={categoryChangeDisclosure}
-              options={categories
-                .filter((cat) => torrentData.category !== cat.name)
-                .map((cat) => ({
-                  label: cat.name,
-                  onClick: () => changeCategory(cat.name),
-                }))}
-            />
-            {isPaused ? (
-              <LightMode>
-                <Button
-                  size={"md"}
-                  colorScheme={"blue"}
-                  onClick={() => resume()}
-                  isLoading={waiting === "mainBtn"}
-                >
-                  <IoPlay size={25} />
-                </Button>
-              </LightMode>
-            ) : (
-              <Button
-                size={"md"}
-                variant={"ghost"}
-                color={"blue.500"}
-                onClick={() => pause()}
-                isLoading={waiting === "mainBtn"}
-              >
-                <IoPause size={25} />
-              </Button>
-            )}
+
+
           </Flex>
+
         </Flex>
       </Box>
       <IosBottomSheet

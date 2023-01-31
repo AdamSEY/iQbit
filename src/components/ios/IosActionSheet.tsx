@@ -60,9 +60,9 @@ function IosActionSheet<Y>({
       <Menu
         isOpen={disclosure.isOpen}
         onClose={disclosure.onClose}
-        placement={"left-start"}
+        placement={"end-start"}
       >
-        <MenuButton position={"absolute"} />
+        <MenuButton position={"absolute"} bottom={30} />
         <MenuList py={0} rounded={12} bgColor={DropdownButtonBgColor}>
           {options.reverse().map((option, index, array) => (
             <MenuItem

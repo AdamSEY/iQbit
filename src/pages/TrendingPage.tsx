@@ -28,6 +28,8 @@ import { SearchPluginsPageQuery } from "./SearchPluginsPage";
 import { TorrClient } from "../utils/TorrClient";
 import {Input} from "@chakra-ui/input";
 import TorrentExtraInfo from "../components/TorrentExtraInfo";
+import {Movie, RottenTomatoesResponse} from "../types";
+import BottomSheet from "../components/BottomSheet";
 
 
 export interface TrendingPageProps {}
@@ -37,8 +39,9 @@ const originalImage = "https://image.tmdb.org/t/p/original";
 
 
 const TrendingPage = (props: TrendingPageProps) => {
-    const tabs = ["Movies", "TV", "TOP 100", "Year"];
+    const tabs = ["Movies", "TV", "TOP 100", "Year", "Rotten"];
     const [tab, setTab] = useState(0);
+
 
     const [selectedMovie, setSelectedMovie] = useState<MovieResult>();
     const movieBottomSheet = useDisclosure();
@@ -63,6 +66,33 @@ const TrendingPage = (props: TrendingPageProps) => {
         keepPreviousData : true,
         enabled: tab === 2,
     })
+
+    const fetchRottenMovies = async (rottenPage?: string) => {
+        let url = `https://www.rottentomatoes.com/napi/browse/movies_at_home/critics:certified_fresh~sort:popular`;
+        let headers = new Headers();
+        headers.append("X-Requested-With", "XMLHttpRequest");
+        if (rottenPage) {
+            url += `?after=${rottenPage}`
+        }
+        let proxyUrl = "https://cors-anywhere.herokuapp.com/" + url;
+        const response = await fetch(proxyUrl, {
+            headers: headers,
+        });
+        return await response.json() as RottenTomatoesResponse;
+    }
+    const [rottenPage, setRottenPage] = React.useState<string|undefined>(undefined)
+    const [rottenMoviesData, setRottenMoviesData] = useState<RottenTomatoesResponse>();
+    const rottenDisclosure = useDisclosure();
+    const [selectedRottenMovie, setSelectedRottenMovie] = useState<Movie>();
+    useQuery({
+        queryKey: ['getRottenMovies', rottenPage],
+        queryFn: () => fetchRottenMovies(rottenPage),
+        onSuccess: (data) => {
+            setRottenMoviesData(data);
+        },
+        keepPreviousData : true,
+        enabled: tab === 4,
+    });
 
     const [page1, setPage1] = React.useState(1)
     const [year, setYear] = React.useState(new Date().getFullYear())
@@ -122,7 +152,10 @@ const TrendingPage = (props: TrendingPageProps) => {
     return (
         <>
             <PageHeader title={"Trending"} />
-            <Text color={"gray.500"}>Trending Movies and Shows from TMDB</Text>
+            <Text color={"gray.500"}>Trending Movies and Shows from TMDB.</Text>
+            {tab === 4 ? (
+                <Text color={"gray.400"}>Request demo from <a target={"_blank"} rel="noreferrer" href={"https://cors-anywhere.herokuapp.com/corsdemo"}>cors-anywhere to load this page.</a> This is a proxy to bypass cors.</Text>
+            ) : null}
             <SegmentedPicker options={tabs} selected={tab} onSelect={setTab} />
             {tab === 0 ? (
                 <PosterGrid
@@ -220,6 +253,28 @@ const TrendingPage = (props: TrendingPageProps) => {
                         Load More
                     </Button>
                 </>
+            ) : tab === 4 ? (
+                <><PosterGrid
+                    list={(rottenMoviesData?.grids[0].list as Movie[]) || []}
+                    keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
+                    titleExtractor={(movie) => movie?.title || "Unknown Title"}
+                    images={(movie) => ({
+                        large: movie.posterUri || "",
+                        small: movie.posterUri || "",
+                    })}
+                    onSelect={(movie) => {
+                        rottenDisclosure.onOpen();
+                        setSelectedRottenMovie(movie);
+                    }}/>
+                    <Button
+                        variant={"ghost"}
+                        size={"xl"}
+                        colorScheme={"blue"}
+                        onClick={()=>{setRottenPage(rottenMoviesData?.pageInfo?.endCursor)}}
+                    >
+                        Load More
+                    </Button>
+                </>
             ) : null}
 
             <IosBottomSheet
@@ -313,55 +368,15 @@ const TrendingPage = (props: TrendingPageProps) => {
 
                 </Flex>
             </IosBottomSheet>
+            <BottomSheet title={selectedTv?.name ?? ""}
+                         disclosure={tvBottomSheet}
+                         providerMapper={providerMapper}
+                         picture={originalImage + selectedTv?.backdrop_path} overview={selectedTv?.overview} />
+            <BottomSheet title={selectedRottenMovie?.title ?? ""}
+                         disclosure={rottenDisclosure}
+                         providerMapper={providerMapper}
+                         picture={selectedRottenMovie?.posterUri ?? ""} overview={selectedRottenMovie?.releaseDateText} />
 
-            <IosBottomSheet
-                title={selectedTv?.name ?? ""}
-                disclosure={tvBottomSheet}
-                modalProps={{ size: "xl" }}
-            >
-                <Flex flexDirection={"column"} gap={4}>
-                    <SectionSM title={"Search Torrent"}>
-                        <Flex
-                            flexWrap={"wrap"}
-                            gap={3}
-                            flexDirection={{ base: "row", lg: "column" }}
-                            width={"100%"}
-                        >
-                            {providerMapper.map(([key, data]) => (
-                                <Flex
-                                    key={key}
-                                    flexDirection={{ base: "column", lg: "row" }}
-                                    alignItems={"center"}
-                                    gap={3}
-                                    bg={bgColor}
-                                    rounded={"lg"}
-                                    justifyContent={"space-between"}
-                                    p={3}
-                                    flexGrow={1}
-                                    minWidth={{ base: "200px", lg: "100%" }}
-                                    maxWidth={{ base: "100%", lg: undefined }}
-                                >
-                                    <Flex>{data.logo}</Flex>
-                                    <LightMode>
-                                        <Button
-                                            colorScheme={"blue"}
-                                            onClick={() =>
-                                                push("/search", {
-                                                    replace: true,
-                                                    state: { provider: key, query: selectedTv?.name },
-                                                })
-                                            }
-                                        >
-                                            Search with {key}
-                                        </Button>
-                                    </LightMode>
-                                </Flex>
-                            ))}
-                        </Flex>
-                    </SectionSM>
-                    <TorrentExtraInfo image={originalImage + selectedTv?.backdrop_path} overview={selectedTv?.overview} title={selectedTv?.name ?? ""}/>
-                </Flex>
-            </IosBottomSheet>
         </>
     );
 };
