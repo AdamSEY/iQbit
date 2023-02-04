@@ -37,6 +37,7 @@ import {Input} from "@chakra-ui/input";
 import TorrentExtraInfo from "../components/TorrentExtraInfo";
 import {Movie, RottenTomatoesResponse} from "../types";
 import BottomSheet from "../components/BottomSheet";
+import {hostname} from "os";
 
 
 export interface TrendingPageProps {}
@@ -115,7 +116,7 @@ const TrendingPage = (props: TrendingPageProps) => {
     })
 
     const fetchRottenMovies = async (rottenPage?: string, genres?: string) => {
-        let url = `http://localhost:3000/napi/browse/movies_at_home/critics:certified_fresh~sort:popular`;
+        let url = `https://www.rottentomatoes.com/napi/browse/movies_at_home/critics:certified_fresh~sort:popular`;
         let headers = new Headers();
         headers.append("X-Requested-With", "XMLHttpRequest");
         if (genres) {
@@ -124,8 +125,10 @@ const TrendingPage = (props: TrendingPageProps) => {
         if (rottenPage) {
             url += `?after=${rottenPage}`
         }
-
-        const response = await fetch(url, {
+        // use this hostname:8080/url for proxy url
+        const proxyurl = window.location.protocol + '//' + window.location.hostname + ":8080/";
+        console.log(proxyurl + url);
+        const response = await fetch(proxyurl + url, {
             headers: headers,
         });
         return await response.json() as RottenTomatoesResponse;
