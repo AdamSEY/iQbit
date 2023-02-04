@@ -191,13 +191,14 @@ const Home = () => {
     <WindowScroller>
       {({ isScrolling, scrollTop, width, height }) => (
         <Flex flexDirection={"column"} width={"100%"} mt={isLarge ? 24 : 0}>
+          {/*Header*/}
           <PageHeader
             title={"Downloads"}
             onAddButtonClick={addModalDisclosure.onOpen}
             buttonLabel={"Add Torrent"}
             isHomeHeader
           />
-
+          {/*add torrent button*/}
           <IosBottomSheet title={"Add Torrent"} disclosure={addModalDisclosure}>
             <VStack gap={4}>
               <FormControl isDisabled={!!file}>

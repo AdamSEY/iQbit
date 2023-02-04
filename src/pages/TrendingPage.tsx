@@ -2,13 +2,20 @@ import React, { useMemo, useState } from "react";
 import {
     Box,
     Button,
-    Flex, Image,
+    Flex,
+    Image,
     LightMode,
     Spinner,
     Text,
     useColorModeValue,
     useDisclosure,
-    NumberInputField, NumberInput, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper,
+    NumberInputField,
+    NumberInput,
+    NumberInputStepper,
+    NumberIncrementStepper,
+    NumberDecrementStepper,
+    Select,
+    CheckboxGroup, Stack, Checkbox, AccordionButton, AccordionIcon, AccordionPanel, AccordionItem, Accordion, VStack, HStack,
 } from "@chakra-ui/react";
 import PageHeader from "../components/PageHeader";
 import { useMutation, useQuery } from "react-query";
@@ -36,6 +43,46 @@ export interface TrendingPageProps {}
 
 const smallImage = "https://image.tmdb.org/t/p/w200";
 const originalImage = "https://image.tmdb.org/t/p/original";
+const genres = [
+    "action",
+    "adventure",
+    "animation",
+    "anime",
+    "biography",
+    "comedy",
+    "crime",
+    "documentary",
+    "drama",
+    "entertainment",
+    "faith and spirituality",
+    "fantasy",
+    "game show",
+    "lgbtq",
+    "health and wellness",
+    "history",
+    "holiday",
+    "horror",
+    "house and garden",
+    "kids and family",
+    "music",
+    "musical",
+    "mystery and thriller",
+    "nature",
+    "news",
+    "reality",
+    "romance",
+    "sci fi",
+    "short",
+    "soap",
+    "special interest",
+    "sports",
+    "stand up",
+    "talk show",
+    "travel",
+    "variety",
+    "war",
+    "western"
+];
 
 
 const TrendingPage = (props: TrendingPageProps) => {
@@ -67,32 +114,37 @@ const TrendingPage = (props: TrendingPageProps) => {
         enabled: tab === 2,
     })
 
-    const fetchRottenMovies = async (rottenPage?: string) => {
-        let url = `https://www.rottentomatoes.com/napi/browse/movies_at_home/critics:certified_fresh~sort:popular`;
+    const fetchRottenMovies = async (rottenPage?: string, genres?: string) => {
+        let url = `http://localhost:3000/napi/browse/movies_at_home/critics:certified_fresh~sort:popular`;
         let headers = new Headers();
         headers.append("X-Requested-With", "XMLHttpRequest");
+        if (genres) {
+            url += `~genres:${genres}`
+        }
         if (rottenPage) {
             url += `?after=${rottenPage}`
         }
-        let proxyUrl = "https://cors-anywhere.herokuapp.com/" + url;
-        const response = await fetch(proxyUrl, {
+
+        const response = await fetch(url, {
             headers: headers,
         });
         return await response.json() as RottenTomatoesResponse;
     }
     const [rottenPage, setRottenPage] = React.useState<string|undefined>(undefined)
+    const [rottenGenres, setRottenGenres] = React.useState<string|undefined>(undefined)
     const [rottenMoviesData, setRottenMoviesData] = useState<RottenTomatoesResponse>();
     const rottenDisclosure = useDisclosure();
     const [selectedRottenMovie, setSelectedRottenMovie] = useState<Movie>();
     useQuery({
-        queryKey: ['getRottenMovies', rottenPage],
-        queryFn: () => fetchRottenMovies(rottenPage),
+        queryKey: ['getRottenMovies', rottenPage, rottenGenres],
+        queryFn: () => fetchRottenMovies(rottenPage, rottenGenres),
         onSuccess: (data) => {
             setRottenMoviesData(data);
         },
         keepPreviousData : true,
         enabled: tab === 4,
     });
+
 
     const [page1, setPage1] = React.useState(1)
     const [year, setYear] = React.useState(new Date().getFullYear())
@@ -152,10 +204,10 @@ const TrendingPage = (props: TrendingPageProps) => {
     return (
         <>
             <PageHeader title={"Trending"} />
-            <Text color={"gray.500"}>Trending Movies and Shows from TMDB.</Text>
+
             {tab === 4 ? (
-                <Text color={"gray.400"}>Request demo from <a target={"_blank"} rel="noreferrer" href={"https://cors-anywhere.herokuapp.com/corsdemo"}>cors-anywhere to load this page.</a> This is a proxy to bypass cors.</Text>
-            ) : null}
+                <Text color={"gray.400"}>Top Critically Acclaimed Movies From RottenTomato</Text>
+            ) : <Text color={"gray.500"}>Trending Movies and Shows from TMDB.</Text>}
             <SegmentedPicker options={tabs} selected={tab} onSelect={setTab} />
             {tab === 0 ? (
                 <PosterGrid
@@ -254,7 +306,35 @@ const TrendingPage = (props: TrendingPageProps) => {
                     </Button>
                 </>
             ) : tab === 4 ? (
-                <><PosterGrid
+                <>
+                    <Accordion  allowMultiple>
+                        <AccordionItem>
+                            <h2>
+                                <AccordionButton>
+                                    <Box as="span" flex='1' textAlign='left'>
+                                        Genres
+                                    </Box>
+                                    <AccordionIcon />
+                                </AccordionButton>
+                            </h2>
+                            <AccordionPanel overflowY={"auto"} maxH={40} pb={4}>
+                                <CheckboxGroup colorScheme='blue' onChange={e => {
+                                    setRottenPage(undefined);
+                                    setRottenGenres(e.join(','))
+                                }} defaultValue={[]}>
+                                    <Flex gap='2' direction={['row', 'column']}>
+                                        {genres.map(value => (
+                                            <Checkbox key={value} value={value}>
+                                                {value}
+                                            </Checkbox>
+                                        ))}
+                                    </Flex>
+                                </CheckboxGroup>
+                            </AccordionPanel>
+                        </AccordionItem>
+                    </Accordion>
+
+                    <PosterGrid
                     list={(rottenMoviesData?.grids[0].list as Movie[]) || []}
                     keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
                     titleExtractor={(movie) => movie?.title || "Unknown Title"}
