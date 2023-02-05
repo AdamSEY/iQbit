@@ -125,9 +125,10 @@ const TrendingPage = (props: TrendingPageProps) => {
         if (rottenPage) {
             url += `?after=${rottenPage}`
         }
-        // use this hostname:8080/url for proxy url
+        // use local cors-anywhere proxy.
         const proxyurl = window.location.protocol + '//' + window.location.hostname + ":8080/";
-        console.log(proxyurl + url);
+        // const proxyurl = "https://cors-anywhere.herokuapp.com/";
+
         const response = await fetch(proxyurl + url, {
             headers: headers,
         });
@@ -138,7 +139,7 @@ const TrendingPage = (props: TrendingPageProps) => {
     const [rottenMoviesData, setRottenMoviesData] = useState<RottenTomatoesResponse>();
     const rottenDisclosure = useDisclosure();
     const [selectedRottenMovie, setSelectedRottenMovie] = useState<Movie>();
-    useQuery({
+    const {isLoading: rottenLoading, isRefetching} = useQuery({
         queryKey: ['getRottenMovies', rottenPage, rottenGenres],
         queryFn: () => fetchRottenMovies(rottenPage, rottenGenres),
         onSuccess: (data) => {
@@ -261,6 +262,7 @@ const TrendingPage = (props: TrendingPageProps) => {
                         movieBottomSheet.onOpen();
                         setSelectedMovie(movie);
                     }}/>
+                    {topMoviesData.length > 0 && (
                     <Button
                         variant={"ghost"}
                         size={"xl"}
@@ -268,7 +270,7 @@ const TrendingPage = (props: TrendingPageProps) => {
                         onClick={()=>{setPage(page+1)}}
                     >
                         Load More
-                    </Button>
+                    </Button>)}
                 </>
 
             ) : tab === 3 ? (
@@ -337,18 +339,26 @@ const TrendingPage = (props: TrendingPageProps) => {
                         </AccordionItem>
                     </Accordion>
 
-                    <PosterGrid
-                    list={(rottenMoviesData?.grids[0].list as Movie[]) || []}
-                    keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
-                    titleExtractor={(movie) => movie?.title || "Unknown Title"}
-                    images={(movie) => ({
-                        large: movie.posterUri || "",
-                        small: movie.posterUri || "",
-                    })}
-                    onSelect={(movie) => {
-                        rottenDisclosure.onOpen();
-                        setSelectedRottenMovie(movie);
-                    }}/>
+                    {rottenLoading || isRefetching? (
+                        <Flex p={3}>
+                            <Spinner size={"xl"} />
+                        </Flex>
+                        ) : (
+                        <PosterGrid
+                            list={(rottenMoviesData?.grids?.[0].list as Movie[]) || []}
+                            keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
+                            titleExtractor={(movie) => movie?.title || "Unknown Title"}
+                            images={(movie) => ({
+                                large: movie.posterUri || "",
+                                small: movie.posterUri || "",
+                            })}
+                            emptyMessage={"No results! Please make sure to run cors-anywhere on port 8080 in order for this to work."}
+                            onSelect={(movie) => {
+                                rottenDisclosure.onOpen();
+                                setSelectedRottenMovie(movie);
+                            }}/>
+                    )}
+                    {rottenMoviesData?.pageInfo?.endCursor ? (
                     <Button
                         variant={"ghost"}
                         size={"xl"}
@@ -356,7 +366,7 @@ const TrendingPage = (props: TrendingPageProps) => {
                         onClick={()=>{setRottenPage(rottenMoviesData?.pageInfo?.endCursor)}}
                     >
                         Load More
-                    </Button>
+                    </Button>) : null}
                 </>
             ) : null}
 
